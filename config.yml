@@ -1,0 +1,29 @@
+# Kafka Lens Configuration
+# This file contains all the settings needed to connect to your Kafka cluster
+
+# MSK Configuration (preferred method)
+# Uncomment and fill in if using Amazon MSK
+# msk_cluster_arn: "arn:aws:kafka:us-west-2:........"
+
+# Static Broker Configuration (fallback)
+bootstrap_servers: "localhost:9092"
+
+# Security Configuration
+security_protocol: "PLAINTEXT"  # Options: PLAINTEXT, SSL, SASL_PLAINTEXT, SASL_SSL
+# sasl_mechanism: "PLAIN"  # Uncomment if using SASL
+# sasl_plain_username: "your-username"
+# sasl_plain_password: "your-password"
+
+# SSL Configuration (uncomment if using SSL)
+# ssl_cafile: "/path/to/ca-cert"
+# ssl_certfile: "/path/to/client-cert"
+# ssl_keyfile: "/path/to/client-key"
+
+# Health Check Thresholds
+lag_threshold: 1000  # Alert if consumer group lag exceeds this number
+stale_consumer_days: 30  # Consider consumers stale after this many days
+unused_topic_days: 90  # Consider topics unused after this many days
+
+# AWS Configuration (for MSK)
+# aws_region: "us-west-2"
+# aws_profile: "default"  # Optional: specify AWS profile to use
