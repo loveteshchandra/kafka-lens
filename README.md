@@ -44,8 +44,7 @@ pip install -e .
 Create a `config.yml` file in your working directory:
 
 ```yaml
-# MSK Configuration (preferred method)
-msk_cluster_arn: "arn:aws:kafka:us-west-2:123456789012:cluster/my-cluster/12345678-1234-1234-1234-123456789012-1"
+
 
 # Static Broker Configuration (fallback)
 bootstrap_servers: "localhost:9092"
@@ -165,13 +164,6 @@ security_protocol: "SASL_SSL"
 sasl_mechanism: "PLAIN"
 sasl_plain_username: "your-username"
 sasl_plain_password: "your-password"
-```
-
-### Amazon MSK
-```yaml
-msk_cluster_arn: "arn:aws:kafka:us-west-2:123456789012:cluster/my-cluster/12345678-1234-1234-1234-123456789012-1"
-aws_region: "us-west-2"
-aws_profile: "default"  # Optional
 ```
 
 ## Examples
