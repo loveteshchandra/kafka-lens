@@ -1,11 +1,7 @@
 # Kafka Lens Configuration
 # This file contains all the settings needed to connect to your Kafka cluster
 
-# MSK Configuration (preferred method)
-# Uncomment and fill in if using Amazon MSK
-# msk_cluster_arn: "arn:aws:kafka:us-west-2:........"
-
-# Static Broker Configuration (fallback)
+# Static Broker Configuration
 bootstrap_servers: "localhost:9092"
 
 # Security Configuration
@@ -24,6 +20,8 @@ lag_threshold: 1000  # Alert if consumer group lag exceeds this number
 stale_consumer_days: 30  # Consider consumers stale after this many days
 unused_topic_days: 90  # Consider topics unused after this many days
 
-# AWS Configuration (for MSK)
+# Optional: Cloud Provider Configuration
+# Uncomment and configure if using a cloud-managed Kafka cluster
+# cluster_arn: "arn:aws:kafka:us-west-2:123456789012:cluster/my-cluster/..."
 # aws_region: "us-west-2"
 # aws_profile: "default"  # Optional: specify AWS profile to use

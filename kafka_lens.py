@@ -47,24 +47,29 @@ class KafkaLens:
             sys.exit(1)
     
     def _get_bootstrap_servers(self) -> List[str]:
-        """Get bootstrap servers from MSK or static configuration."""
-        if 'msk_cluster_arn' in self.config:
-            return self._get_msk_bootstrap_servers()
+        """Get bootstrap servers from cloud cluster or static configuration."""
+        if 'cluster_arn' in self.config or 'msk_cluster_arn' in self.config:
+            return self._get_cloud_bootstrap_servers()
         else:
             servers = self.config.get('bootstrap_servers', 'localhost:9092')
             return servers.split(',') if isinstance(servers, str) else servers
     
-    def _get_msk_bootstrap_servers(self) -> List[str]:
-        """Get bootstrap servers from Amazon MSK cluster."""
+    def _get_cloud_bootstrap_servers(self) -> List[str]:
+        """Get bootstrap servers from cloud-managed Kafka cluster."""
         try:
+            # Support both cluster_arn and msk_cluster_arn for backward compatibility
+            cluster_arn = self.config.get('cluster_arn') or self.config.get('msk_cluster_arn')
+            if not cluster_arn:
+                raise ValueError("cluster_arn or msk_cluster_arn must be specified for cloud clusters")
+            
             region = self.config.get('aws_region', 'us-west-2')
             profile = self.config.get('aws_profile')
             
             session = boto3.Session(profile_name=profile) if profile else boto3.Session()
-            msk_client = session.client('kafka', region_name=region)
+            kafka_client = session.client('kafka', region_name=region)
             
-            response = msk_client.get_bootstrap_brokers(
-                ClusterArn=self.config['msk_cluster_arn']
+            response = kafka_client.get_bootstrap_brokers(
+                ClusterArn=cluster_arn
             )
             
             # Use TLS brokers by default
@@ -75,7 +80,7 @@ class KafkaLens:
             return brokers.split(',') if brokers else []
             
         except Exception as e:
-            click.echo(f"{Fore.RED}Error connecting to MSK: {e}{Style.RESET_ALL}")
+            click.echo(f"{Fore.RED}Error connecting to cloud cluster: {e}{Style.RESET_ALL}")
             sys.exit(1)
     
     def _get_admin_client(self) -> KafkaAdminClient:
