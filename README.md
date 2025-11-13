@@ -1,13 +1,13 @@
 # Kafka Lens 🔍
 
-A command-line interface (CLI) tool that provides Kafka administrators with simple, one-line commands to diagnose cluster health, pinpoint consumer group lag, and clean up stale resources on Apache Kafka / Amazon MSK clusters.
+A command-line interface (CLI) tool that provides Kafka administrators with simple, one-line commands to diagnose cluster health, pinpoint consumer group lag, and clean up stale resources on Apache Kafka clusters.
 
 ## Features
 
 - **🔍 Health Check**: Quick cluster overview with broker status and under-replicated partition detection
 - **📊 Lag Monitoring**: Identify consumer groups falling behind in message processing
 - **🧹 Resource Cleanup**: Find and safely delete stale consumer groups and unused topics
-- **☁️ MSK Integration**: Seamless Amazon MSK cluster discovery and connection
+- **☁️ Cloud Integration**: Support for cloud-managed Kafka clusters with automatic broker discovery
 - **🔒 Security Support**: Full support for SSL, SASL, and AWS IAM authentication
 - **🎨 Beautiful Output**: Color-coded, easy-to-read command output
 
@@ -16,7 +16,7 @@ A command-line interface (CLI) tool that provides Kafka administrators with simp
 ### Prerequisites
 
 - Python 3.7 or higher
-- Access to a Kafka cluster (local, cloud, or Amazon MSK)
+- Access to a Kafka cluster (local or cloud-managed)
 
 ### Quick Install
 
@@ -60,9 +60,11 @@ lag_threshold: 1000  # Alert if consumer group lag exceeds this number
 stale_consumer_days: 30  # Consider consumers stale after this many days
 unused_topic_days: 90  # Consider topics unused after this many days
 
-# AWS Configuration (for MSK)
-aws_region: "us-west-2"
-aws_profile: "default"  # Optional: specify AWS profile to use
+# Optional: Cloud Provider Configuration
+# Uncomment and configure if using a cloud-managed Kafka cluster
+# cluster_arn: "arn:aws:kafka:us-west-2:123456789012:cluster/my-cluster/..."
+# aws_region: "us-west-2"
+# aws_profile: "default"  # Optional: specify AWS profile to use
 ```
 
 ## Usage
@@ -193,10 +195,10 @@ kl delete group stale-consumer-group
 kl delete topic unused-topic
 ```
 
-### MSK Cluster Management
+### Cloud-Managed Clusters
 ```bash
-# Using MSK cluster ARN (no need to specify brokers)
-kl --config msk-config.yml health-check
+# Using cluster ARN for automatic broker discovery (no need to specify brokers)
+kl --config cloud-config.yml health-check
 ```
 
 ## Troubleshooting
@@ -205,7 +207,7 @@ kl --config msk-config.yml health-check
 
 1. **Connection Refused**: Check your `bootstrap_servers` configuration
 2. **Authentication Failed**: Verify your SASL credentials or SSL certificates
-3. **MSK Connection Issues**: Ensure your AWS credentials are configured and the cluster ARN is correct
+3. **Cloud Cluster Connection Issues**: Ensure your cloud provider credentials are configured and the cluster ARN is correct
 4. **Permission Denied**: Verify your Kafka user has the necessary permissions
 
 ### Debug Mode
