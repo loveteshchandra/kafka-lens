@@ -48,7 +48,7 @@ class KafkaLens:
     
     def _get_bootstrap_servers(self) -> List[str]:
         """Get bootstrap servers from cloud cluster or static configuration."""
-        if 'cluster_arn' in self.config or 'msk_cluster_arn' in self.config:
+        if 'cluster_arn' in self.config:
             return self._get_cloud_bootstrap_servers()
         else:
             servers = self.config.get('bootstrap_servers', 'localhost:9092')
@@ -57,13 +57,12 @@ class KafkaLens:
     def _get_cloud_bootstrap_servers(self) -> List[str]:
         """Get bootstrap servers from cloud-managed Kafka cluster."""
         try:
-            # Support both cluster_arn and msk_cluster_arn for backward compatibility
-            cluster_arn = self.config.get('cluster_arn') or self.config.get('msk_cluster_arn')
+            cluster_arn = self.config.get('cluster_arn')
             if not cluster_arn:
-                raise ValueError("cluster_arn or msk_cluster_arn must be specified for cloud clusters")
+                raise ValueError("cluster_arn must be specified for cloud clusters")
             
-            region = self.config.get('aws_region', 'us-west-2')
-            profile = self.config.get('aws_profile')
+            region = self.config.get('cloud_region', 'us-west-2')
+            profile = self.config.get('cloud_profile')
             
             session = boto3.Session(profile_name=profile) if profile else boto3.Session()
             kafka_client = session.client('kafka', region_name=region)
