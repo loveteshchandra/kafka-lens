@@ -16,7 +16,7 @@ import click
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 from kafka.admin import KafkaAdminClient
-from kafka import KafkaConsumer
+from kafka import KafkaConsumer, TopicPartition
 from kafka.errors import KafkaError
 import colorama
 from colorama import Fore, Style
@@ -130,7 +130,8 @@ class KafkaLens:
                 'bootstrap_servers': bootstrap_servers,
                 'security_protocol': self.config.get('security_protocol', 'PLAINTEXT'),
                 'auto_offset_reset': 'latest',
-                'enable_auto_commit': False
+                'enable_auto_commit': False,
+                'consumer_timeout_ms': 1000
             }
             
             # Add SASL configuration if specified
@@ -140,6 +141,18 @@ class KafkaLens:
                     'sasl_plain_username': self.config.get('sasl_plain_username'),
                     'sasl_plain_password': self.config.get('sasl_plain_password')
                 })
+            
+            # Add SSL configuration if specified
+            ssl_config = {}
+            if 'ssl_cafile' in self.config:
+                ssl_config['cafile'] = self.config['ssl_cafile']
+            if 'ssl_certfile' in self.config:
+                ssl_config['certfile'] = self.config['ssl_certfile']
+            if 'ssl_keyfile' in self.config:
+                ssl_config['keyfile'] = self.config['ssl_keyfile']
+            
+            if ssl_config:
+                consumer_config['ssl_context'] = ssl_config
             
             try:
                 self.consumer = KafkaConsumer(**consumer_config)
@@ -326,29 +339,47 @@ class KafkaLens:
                     if not partitions:
                         continue
                     
+                    # Create TopicPartition objects
+                    topic_partitions = [TopicPartition(topic, p) for p in partitions]
+                    
+                    # Assign partitions to consumer
+                    consumer.assign(topic_partitions)
+                    
                     # Get end offsets
-                    end_offsets = consumer.end_offsets(partitions)
+                    end_offsets = consumer.end_offsets(topic_partitions)
                     
                     # Find the latest message timestamp across all partitions
                     latest_timestamp = 0
-                    for partition in partitions:
-                        if end_offsets[partition] > 0:
+                    for tp in topic_partitions:
+                        if end_offsets[tp] > 0:
                             # Seek to the last message
-                            consumer.seek_to_end(partition)
-                            consumer.seek(partition, end_offsets[partition] - 1)
+                            consumer.seek(tp, max(0, end_offsets[tp] - 1))
                             
                             # Poll for one message to get timestamp
                             messages = consumer.poll(timeout_ms=1000)
-                            for tp, msgs in messages.items():
-                                if tp.partition == partition and msgs:
-                                    latest_timestamp = max(latest_timestamp, msgs[0].timestamp)
+                            for msg_tp, msgs in messages.items():
+                                if msg_tp == tp and msgs:
+                                    for msg in msgs:
+                                        if hasattr(msg, 'timestamp') and msg.timestamp:
+                                            latest_timestamp = max(latest_timestamp, msg.timestamp)
+                    
+                    # Unassign partitions before moving to next topic
+                    consumer.unassign()
                     
                     if latest_timestamp > 0 and latest_timestamp < threshold_ts:
                         days_old = (datetime.now().timestamp() * 1000 - latest_timestamp) / (1000 * 60 * 60 * 24)
                         unused_topics.append((topic, f"{days_old:.1f} days old"))
+                    elif latest_timestamp == 0:
+                        # Topic exists but has no messages
+                        unused_topics.append((topic, "No messages"))
                         
                 except Exception as e:
                     click.echo(f"{Fore.YELLOW}Warning: Could not check topic '{topic}': {e}{Style.RESET_ALL}")
+                    # Ensure partitions are unassigned even on error
+                    try:
+                        consumer.unassign()
+                    except:
+                        pass
                     continue
             
             # Display results
