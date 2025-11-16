@@ -8,7 +8,7 @@ A command-line interface (CLI) tool that provides Kafka administrators with simp
 - **📊 Lag Monitoring**: Identify consumer groups falling behind in message processing
 - **🧹 Resource Cleanup**: Find and safely delete stale consumer groups and unused topics
 - **☁️ Cloud Integration**: Support for cloud-managed Kafka clusters with automatic broker discovery
-- **🔒 Security Support**: Full support for SSL, SASL, and AWS IAM authentication
+- **🔒 Security Support**: Full support for SSL, SASL, and IAM authentication
 - **🎨 Beautiful Output**: Color-coded, easy-to-read command output
 
 ## Installation
@@ -62,9 +62,9 @@ unused_topic_days: 90  # Consider topics unused after this many days
 
 # Optional: Cloud Provider Configuration
 # Uncomment and configure if using a cloud-managed Kafka cluster
-# cluster_arn: "arn:aws:kafka:us-west-2:123456789012:cluster/my-cluster/..."
-# aws_region: "us-west-2"
-# aws_profile: "default"  # Optional: specify AWS profile to use
+# cluster_arn: "arn:...:kafka:...:cluster/..."
+# cloud_region: "us-west-2"
+# cloud_profile: "default"  # Optional: specify cloud provider profile to use
 ```
 
 ## Usage
